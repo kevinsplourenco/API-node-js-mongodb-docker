@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Serviço do MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: api-mongodb
+    environment:
+      MONGO_INITDB_DATABASE: api_node_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - api_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Serviço da Aplicação Node.js
+  app:
+    build: .
+    container_name: api-node-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - MONGODB_URI=mongodb://mongodb:27017/api_node_db
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - api_network
+    volumes:
+      - ./src:/app/src
+    restart: unless-stopped
+    command: npm start
+
+# Volumes nomeados
+volumes:
+  mongodb_data:
+    driver: local
+
+# Rede interna do Docker
+networks:
+  api_network:
+    driver: bridge
