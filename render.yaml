@@ -1,0 +1,29 @@
+# Render deployment configuration for Node.js API with MongoDB Atlas
+
+services:
+  - type: web
+    name: api-node-mongodb
+    env: node
+    region: oregon
+    plan: starter
+    
+    # Build
+    buildCommand: npm install
+    startCommand: npm start
+    
+    # Environment variables (set these in Render Dashboard)
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        scope: run
+        # Set this in Render Dashboard with your MongoDB Atlas URI
+    
+    # Health check
+    healthCheckPath: /api-docs
+    
+    # Auto-deploy from GitHub
+    repo: https://github.com/kevinsplourenco/API-node-js-mongodb-docker.git
+    branch: main
